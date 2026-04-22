@@ -54,9 +54,8 @@ Batteries/
 final_outputs/
 brain/
 # Ignore root artifacts but allow those in backend for deployment
-artifacts/
-!backend/artifacts/*.pth
-!backend/artifacts/*.pkl
+/artifacts/
+!/backend/artifacts/
 
 # OS generated files
 .DS_Store
