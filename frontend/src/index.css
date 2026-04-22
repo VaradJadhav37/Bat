@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+}
+
+@keyframes wave-move {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.battery-gloss {
+  position: absolute;
+  top: 0;
+  left: 5%;
+  width: 20%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(255,255,255,0.2), transparent);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+@keyframes liquid-sway {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

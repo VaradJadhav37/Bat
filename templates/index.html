@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Enerlytics — Battery Diagnostics</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#0a0e1a;color:#e2e8f0;min-height:100vh}
+:root{--accent:#6366f1;--accent2:#22d3ee;--glass:rgba(255,255,255,0.05);--border:rgba(255,255,255,0.1)}
+
+header{background:linear-gradient(135deg,#1e1b4b,#0a0e1a);border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;align-items:center;gap:1rem}
+.logo{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem}
+header h1{font-size:1.3rem;font-weight:600;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.pill{margin-left:auto;background:rgba(34,211,238,0.15);color:var(--accent2);border:1px solid rgba(34,211,238,0.3);padding:.25rem .75rem;border-radius:999px;font-size:.75rem}
+
+.container{max-width:1400px;margin:0 auto;padding:2rem}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-bottom:2rem}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem;margin-bottom:2rem}
+.card{background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:1.5rem;backdrop-filter:blur(10px)}
+.card h2{font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:#94a3b8;margin-bottom:1rem}
+.card h3{font-size:.9rem;font-weight:600;color:#e2e8f0;margin-bottom:.75rem}
+
+.metric-val{font-size:2.5rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.metric-label{font-size:.75rem;color:#64748b;margin-top:.25rem}
+.badge{display:inline-block;padding:.2rem .6rem;border-radius:6px;font-size:.7rem;font-weight:600}
+.badge-good{background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.3)}
+.badge-warn{background:rgba(234,179,8,0.15);color:#facc15;border:1px solid rgba(234,179,8,0.3)}
+.badge-bad{background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)}
+
+.section-title{font-size:1.1rem;font-weight:600;margin-bottom:1.25rem;display:flex;align-items:center;gap:.5rem}
+.section-title::before{content:'';width:4px;height:1.1rem;background:linear-gradient(var(--accent),var(--accent2));border-radius:2px;display:block}
+
+/* Upload zone */
+.upload-zone{border:2px dashed rgba(99,102,241,0.4);border-radius:12px;padding:2.5rem;text-align:center;cursor:pointer;transition:.3s;background:rgba(99,102,241,0.05)}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:rgba(99,102,241,0.1)}
+.upload-icon{font-size:2.5rem;margin-bottom:.75rem}
+.upload-zone p{color:#94a3b8;font-size:.9rem}
+.upload-zone strong{color:var(--accent)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.4rem;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;transition:.2s;border:none;text-decoration:none}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#818cf8);color:#fff}
+.btn-primary:hover{opacity:.85;transform:translateY(-1px)}
+.btn-secondary{background:var(--glass);border:1px solid var(--border);color:#e2e8f0}
+.btn-secondary:hover{background:rgba(255,255,255,0.1)}
+.btn-group{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1rem}
+
+/* Model selector */
+.model-tabs{display:flex;gap:.5rem;margin-bottom:1.5rem}
+.model-tab{padding:.5rem 1rem;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:#94a3b8;transition:.2s}
+.model-tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* Result cards */
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem}
+.result-card{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:1.25rem;text-align:center}
+.result-card .name{font-size:.7rem;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem}
+.result-card .value{font-size:2rem;font-weight:700}
+.soh-val{color:#22d3ee}.rul-val{color:#a78bfa}
+.gauge{width:80px;height:80px;margin:0 auto .75rem}
+
+/* Progress bar */
+.bar-wrap{background:rgba(255,255,255,0.07);border-radius:999px;height:6px;margin:.5rem 0}
+.bar-fill{height:6px;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .6s ease}
+
+/* Spinner */
+.spinner{width:24px;height:24px;border:3px solid rgba(99,102,241,0.3);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Alert */
+.alert{padding:.75rem 1rem;border-radius:8px;font-size:.85rem;margin-top:1rem;display:none}
+.alert-err{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171}
+.alert-ok{background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:#4ade80}
+
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{text-align:left;padding:.5rem .75rem;color:#64748b;font-weight:500;border-bottom:1px solid var(--border)}
+td{padding:.6rem .75rem;border-bottom:1px solid rgba(255,255,255,0.04)}
+tr:hover td{background:rgba(255,255,255,0.03)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">⚡</div>
+  <h1>Enerlytics Battery Diagnostics</h1>
+  <span class="pill" id="statusPill">Loading...</span>
+</header>
+
+<div class="container">
+
+  <!-- Metrics row -->
+  <div class="section-title">Model Performance</div>
+  <div class="grid3" id="metricsRow">
+    <div class="card"><div class="metric-val" id="m-idtcn-soh">—</div><div class="metric-label">ID-TCN SOH MAE</div></div>
+    <div class="card"><div class="metric-val" id="m-idtcn-rul">—</div><div class="metric-label">ID-TCN RUL MAE</div></div>
+    <div class="card"><div class="metric-val" id="m-idtcn-r2">—</div><div class="metric-label">ID-TCN SOH R²</div></div>
+    <div class="card"><div class="metric-val" id="m-wn-soh">—</div><div class="metric-label">WaveNet SOH MAE</div></div>
+    <div class="card"><div class="metric-val" id="m-wn-rul">—</div><div class="metric-label">WaveNet RUL MAE</div></div>
+    <div class="card"><div class="metric-val" id="m-wn-r2">—</div><div class="metric-label">WaveNet SOH R²</div></div>
+  </div>
+
+  <div class="grid2">
+    <!-- Predict panel -->
+    <div class="card">
+      <h2>Run Prediction</h2>
+
+      <div class="model-tabs">
+        <button class="model-tab active" onclick="setModel('both',this)">Both Models</button>
+        <button class="model-tab" onclick="setModel('idtcn',this)">ID-TCN</button>
+        <button class="model-tab" onclick="setModel('wavenet',this)">WaveNet</button>
+      </div>
+
+      <!-- Upload -->
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('pklFile').click()">
+        <div class="upload-icon">📂</div>
+        <p>Drop <strong>test_samples.pkl</strong> or any cycle pkl here</p>
+        <p style="margin-top:.4rem;font-size:.75rem">or click to browse</p>
+        <input type="file" id="pklFile" accept=".pkl" style="display:none" onchange="handleFile(this)">
+      </div>
+      <div id="fileInfo" style="display:none;margin-top:.75rem;font-size:.8rem;color:#94a3b8;padding:.5rem .75rem;background:rgba(99,102,241,0.08);border-radius:8px"></div>
+
+      <!-- Sample selector -->
+      <div id="samplePanel" style="display:none;margin-top:1rem">
+        <h3>Select Sample</h3>
+        <select id="sampleSelect" style="width:100%;padding:.6rem;background:#111827;border:1px solid var(--border);border-radius:8px;color:#e2e8f0;font-size:.85rem"></select>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="predict()">⚡ Predict</button>
+        <button class="btn btn-secondary" onclick="loadDemoSample()">🔬 Load Demo Sample</button>
+        <div class="spinner" id="spinner"></div>
+      </div>
+      <div class="alert alert-err" id="errAlert"></div>
+    </div>
+
+    <!-- Results panel -->
+    <div class="card">
+      <h2>Prediction Results</h2>
+      <div id="resultEmpty" style="text-align:center;padding:2rem;color:#475569">
+        <div style="font-size:2rem;margin-bottom:.5rem">🔋</div>
+        <p>Run a prediction to see results here</p>
+      </div>
+      <div id="resultContent" style="display:none">
+        <div id="truthRow" style="display:none;margin-bottom:1rem;padding:.75rem;background:rgba(255,255,255,0.04);border-radius:8px;font-size:.82rem">
+          <span style="color:#64748b" id="truthLabel">Ground Truth → </span>
+          <span>SOH: <strong id="trSoh" class="soh-val">—</strong></span>
+          &nbsp;&nbsp;
+          <span>RUL: <strong id="trRul" class="rul-val">—</strong></span>
+        </div>
+        <!-- ID-TCN -->
+        <div id="res-idtcn" style="display:none">
+          <div style="font-size:.75rem;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">ID-TCN</div>
+          <div class="result-grid" style="grid-template-columns:1fr 1fr;margin-bottom:1rem">
+            <div class="result-card"><div class="name">State of Health</div><div class="value soh-val" id="r-idtcn-soh">—</div><div class="bar-wrap"><div class="bar-fill" id="bar-idtcn-soh" style="width:0%"></div></div></div>
+            <div class="result-card"><div class="name">RUL (Cycles)</div><div class="value rul-val" id="r-idtcn-rul">—</div><div class="bar-wrap"><div class="bar-fill" id="bar-idtcn-rul" style="width:0%"></div></div></div>
+          </div>
+        </div>
+        <!-- WaveNet -->
+        <div id="res-wavenet" style="display:none">
+          <div style="font-size:.75rem;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">WaveNet-CNN</div>
+          <div class="result-grid" style="grid-template-columns:1fr 1fr;margin-bottom:1rem">
+            <div class="result-card"><div class="name">State of Health</div><div class="value soh-val" id="r-wn-soh">—</div><div class="bar-wrap"><div class="bar-fill" id="bar-wn-soh" style="width:0%"></div></div></div>
+            <div class="result-card"><div class="name">RUL (Cycles)</div><div class="value rul-val" id="r-wn-rul">—</div><div class="bar-wrap"><div class="bar-fill" id="bar-wn-rul" style="width:0%"></div></div></div>
+          </div>
+        </div>
+        <!-- Ensemble -->
+        <div id="res-ensemble" style="display:none;padding:1rem;background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(34,211,238,0.1));border:1px solid rgba(99,102,241,0.3);border-radius:12px">
+          <div style="font-size:.75rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem">⚡ Ensemble Result</div>
+          <div style="display:flex;gap:2rem;justify-content:center">
+            <div style="text-align:center"><div style="font-size:2.2rem;font-weight:700" class="soh-val" id="r-ens-soh">—</div><div style="font-size:.75rem;color:#64748b;margin-top:.25rem">State of Health</div><span class="badge" id="badge-soh">—</span></div>
+            <div style="text-align:center"><div style="font-size:2.2rem;font-weight:700" class="rul-val" id="r-ens-rul">—</div><div style="font-size:.75rem;color:#64748b;margin-top:.25rem">RUL (Cycles)</div><span class="badge" id="badge-rul">—</span></div>
+          </div>
+        </div>
+        <div style="margin-top:.75rem;font-size:.75rem;color:#475569;text-align:right" id="nPointsLabel"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts row -->
+  <div class="grid2">
+    <div class="card">
+      <h2>ID-TCN Training Curves</h2>
+      <canvas id="chartIdtcn" height="180"></canvas>
+    </div>
+    <div class="card">
+      <h2>WaveNet Training Curves</h2>
+      <canvas id="chartWavenet" height="180"></canvas>
+    </div>
+  </div>
+
+  <!-- Bayesian -->
+  <div class="section-title">Bayesian Optimization — Optimal Charging Parameters</div>
+  <div class="grid2" id="bayesPanel">
+    <div class="card" id="bay-idtcn"><h3>ID-TCN Result</h3><p style="color:#475569;font-size:.85rem">Loading...</p></div>
+    <div class="card" id="bay-wavenet"><h3>WaveNet-CNN Result</h3><p style="color:#475569;font-size:.85rem">Loading...</p></div>
+  </div>
+
+</div>
+
+<script>
+let currentModel = 'both';
+let loadedSamples = null;
+let pendingPayload = null;
+
+function setModel(m, el) {
+  currentModel = m;
+  document.querySelectorAll('.model-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function pct(v){ return Math.round(v*100)+'%'; }
+
+function healthBadge(v, el) {
+  el.className = 'badge';
+  if(v>=0.8){el.classList.add('badge-good');el.textContent='Healthy';}
+  else if(v>=0.6){el.classList.add('badge-warn');el.textContent='Degraded';}
+  else{el.classList.add('badge-bad');el.textContent='Critical';}
+}
+
+async function loadMetrics() {
+  try {
+    const r = await fetch('/metrics'); const d = await r.json();
+    document.getElementById('m-idtcn-soh').textContent = d.idtcn.soh_mae.toFixed(4);
+    document.getElementById('m-idtcn-rul').textContent = d.idtcn.rul_mae.toFixed(4);
+    document.getElementById('m-idtcn-r2').textContent  = d.idtcn.soh_r2.toFixed(3);
+    document.getElementById('m-wn-soh').textContent    = d.wavenet.soh_mae.toFixed(4);
+    document.getElementById('m-wn-rul').textContent    = d.wavenet.rul_mae.toFixed(4);
+    document.getElementById('m-wn-r2').textContent     = d.wavenet.soh_r2.toFixed(3);
+    drawChart('chartIdtcn',  d.idtcn.history_loss,  d.idtcn.history_soh_val,  d.idtcn.history_rul_val);
+    drawChart('chartWavenet',d.wavenet.history_loss, d.wavenet.history_soh_val,d.wavenet.history_rul_val);
+  } catch(e){ console.warn('metrics load fail',e); }
+}
+
+function drawChart(id, loss, soh, rul) {
+  const ctx = document.getElementById(id).getContext('2d');
+  new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: loss.map((_,i)=>i+1),
+      datasets:[
+        {label:'Train Loss',data:loss,borderColor:'#6366f1',borderWidth:2,pointRadius:0,tension:.4},
+        {label:'SOH MAE',   data:soh, borderColor:'#22d3ee',borderWidth:2,pointRadius:0,tension:.4},
+        {label:'RUL MAE',   data:rul, borderColor:'#a78bfa',borderWidth:2,pointRadius:0,tension:.4},
+      ]
+    },
+    options:{responsive:true,plugins:{legend:{labels:{color:'#94a3b8',boxWidth:12,font:{size:10}}}},
+      scales:{x:{ticks:{color:'#475569',font:{size:9}},grid:{color:'rgba(255,255,255,0.05)'}},
+               y:{ticks:{color:'#475569',font:{size:9}},grid:{color:'rgba(255,255,255,0.05)'}}}}
+  });
+}
+
+async function loadBayesian() {
+  try {
+    const r = await fetch('/bayesian'); const d = await r.json();
+    ['idtcn','wavenet'].forEach(k => {
+      const b = d[k]; const el = document.getElementById('bay-'+k);
+      el.innerHTML = `<h3>${k==='idtcn'?'ID-TCN':'WaveNet-CNN'} Result</h3>
+        <table>
+          <tr><th>Parameter</th><th>Optimal Value</th><th id="th-curr-${k}">Current Sample</th></tr>
+          <tr><td>⚡ Voltage</td><td><strong>${b.best_voltage.toFixed(4)} V</strong></td><td id="td-v-${k}">—</td></tr>
+          <tr><td>🔌 Current</td><td><strong>${b.best_current.toFixed(4)} A</strong></td><td id="td-c-${k}">—</td></tr>
+          <tr><td>📉 Depth of Discharge</td><td><strong>${b.best_dod.toFixed(4)}</strong></td><td id="td-d-${k}">—</td></tr>
+          <tr><td>🔮 Predicted Max RUL</td><td><strong class="rul-val">${b.best_rul.toFixed(4)}</strong></td><td id="td-r-${k}">—</td></tr>
+        </table>`;
+    });
+  } catch(e){ console.warn('bayesian load fail',e); }
+}
+
+async function checkHealth() {
+  try {
+    const r = await fetch('/health'); const d = await r.json();
+    const pill = document.getElementById('statusPill');
+    if(d.models_loaded){ pill.textContent='🟢 Ready'; pill.style.color='#4ade80'; }
+    else { pill.textContent='⏳ Loading Models'; }
+  } catch(e){}
+}
+
+function handleFile(input) {
+  const file = input.files[0]; if(!file) return;
+  document.getElementById('fileInfo').style.display='block';
+  document.getElementById('fileInfo').textContent=`📄 ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+  pendingPayload = {type:'file', file};
+}
+
+async function loadDemoSample() {
+  try {
+    const r = await fetch('/test_samples/count'); const d = await r.json();
+    if(d.count===0){showErr('No test samples found. Run generate_pkl_artifacts.py first.'); return;}
+    loadedSamples = d.samples;
+    const sel = document.getElementById('sampleSelect');
+    sel.innerHTML = d.samples.map((s,i)=>{
+        const rLabel = s.rul_true_cycles !== undefined ? `${s.rul_true_cycles}cyc` : Math.round(s.rul_true*100)+'%';
+        return `<option value="${i}">${s.cell} / cyc:${s.cycle} — SOH:${Math.round(s.soh_true*100)}% RUL:${rLabel}</option>`;
+    }).join('');
+    document.getElementById('samplePanel').style.display='block';
+    document.getElementById('fileInfo').style.display='block';
+    document.getElementById('fileInfo').textContent=`✅ ${d.count} demo samples loaded from server`;
+    pendingPayload = {type:'demo', idx: 0};
+    sel.onchange = () => { pendingPayload = {type:'demo', idx:parseInt(sel.value)}; };
+  } catch(e){ showErr('Failed to load demo samples: '+e); }
+}
+
+function showErr(msg) {
+  const el = document.getElementById('errAlert');
+  el.textContent = msg; el.style.display = 'block';
+  setTimeout(()=>el.style.display='none', 6000);
+}
+
+async function predict() {
+  if(!pendingPayload){ showErr('Please upload a .pkl file or load a demo sample first.'); return; }
+  document.getElementById('spinner').style.display='block';
+  document.getElementById('errAlert').style.display='none';
+
+  try {
+    let resp;
+    if(pendingPayload.type==='demo') {
+      const idx = pendingPayload.idx;
+      const sr = await fetch(`/test_sample/${idx}`); const sample = await sr.json();
+      resp = await fetch('/predict',{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+            v:sample.v, q:sample.q, T:sample.T,
+            model:currentModel, 
+            soh_true:sample.soh_true, 
+            rul_true_norm:sample.rul_true_norm || sample.rul_true,
+            rul_true_cycles:sample.rul_true_cycles,
+            cell:sample.cell, total_cycles:sample.total_cycles
+        })
+      });
+    } else {
+      const fd = new FormData();
+      fd.append('file', pendingPayload.file);
+      fd.append('model', currentModel);
+      resp = await fetch('/predict',{method:'POST', body:fd});
+    }
+    const d = await resp.json();
+    if(!resp.ok){ showErr(d.error||'Prediction failed'); return; }
+    showResults(d);
+  } catch(e){ showErr('Error: '+e); }
+  finally { document.getElementById('spinner').style.display='none'; }
+}
+
+function showResults(d) {
+  document.getElementById('resultEmpty').style.display='none';
+  document.getElementById('resultContent').style.display='block';
+
+  // Truth
+  const truthDiv = document.getElementById('truthRow');
+  if(d.soh_true!=null) {
+    truthDiv.style.display='block';
+    document.getElementById('trSoh').textContent = pct(d.soh_true);
+    const rTrueLabel = d.rul_true_cycles != null ? `${d.rul_true_cycles} Cycles` : pct(d.rul_true_norm || 0);
+    document.getElementById('trRul').textContent = rTrueLabel;
+  } else { truthDiv.style.display='none'; }
+
+  // ID-TCN
+  const ri = document.getElementById('res-idtcn');
+  if(d.idtcn) {
+    ri.style.display='block';
+    document.getElementById('r-idtcn-soh').textContent = pct(d.idtcn.soh);
+    document.getElementById('r-idtcn-rul').textContent = d.idtcn.rul_cycles;
+    document.getElementById('bar-idtcn-soh').style.width = pct(d.idtcn.soh);
+    document.getElementById('bar-idtcn-rul').style.width = pct(d.idtcn.rul_norm);
+  } else ri.style.display='none';
+
+  // WaveNet
+  const rw = document.getElementById('res-wavenet');
+  if(d.wavenet) {
+    rw.style.display='block';
+    document.getElementById('r-wn-soh').textContent = pct(d.wavenet.soh);
+    document.getElementById('r-wn-rul').textContent = d.wavenet.rul_cycles;
+    document.getElementById('bar-wn-soh').style.width = pct(d.wavenet.soh);
+    document.getElementById('bar-wn-rul').style.width = pct(d.wavenet.rul_norm);
+  } else rw.style.display='none';
+
+  // Ensemble
+  const re = document.getElementById('res-ensemble');
+  if(d.ensemble) {
+    re.style.display='block';
+    document.getElementById('r-ens-soh').textContent = pct(d.ensemble.soh);
+    document.getElementById('r-ens-rul').textContent = d.ensemble.rul_cycles;
+    healthBadge(d.ensemble.soh, document.getElementById('badge-soh'));
+    // healthBadge for RUL cycles is tricky, so we'll just badge SOH
+  } else re.style.display='none';
+
+  if(d.n_points) document.getElementById('nPointsLabel').textContent = `Input: ${d.n_points} data points`;
+
+  // Update Bayesian tables with current parameters
+  if(d.current_phys) {
+    ['idtcn', 'wavenet'].forEach(k => {
+      const vEl = document.getElementById(`td-v-${k}`);
+      const cEl = document.getElementById(`td-c-${k}`);
+      const dEl = document.getElementById(`td-d-${k}`);
+      const rEl = document.getElementById(`td-r-${k}`);
+      const thEl = document.getElementById(`th-curr-${k}`);
+      if(vEl) vEl.innerHTML = `<strong>${d.current_phys.voltage.toFixed(4)} V</strong>`;
+      if(cEl) cEl.innerHTML = `<strong>${d.current_phys.current.toFixed(4)} A</strong>`;
+      if(dEl) dEl.innerHTML = `<strong>${d.current_phys.dod.toFixed(4)}</strong>`;
+      if(rEl && d[k]) rEl.innerHTML = `<strong class="rul-val">${d[k].rul_norm.toFixed(4)}</strong>`;
+      if(thEl) thEl.innerHTML = d.cell ? `Current (${d.cell})` : `Current Sample`;
+    });
+  }
+}
+
+// Drag and drop
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e=>{e.preventDefault();zone.classList.add('drag')});
+zone.addEventListener('dragleave', ()=>zone.classList.remove('drag'));
+zone.addEventListener('drop', e=>{
+  e.preventDefault(); zone.classList.remove('drag');
+  const f = e.dataTransfer.files[0]; if(!f) return;
+  document.getElementById('fileInfo').style.display='block';
+  document.getElementById('fileInfo').textContent=`📄 ${f.name} (${(f.size/1024).toFixed(1)} KB)`;
+  pendingPayload = {type:'file', file:f};
+});
+
+// Init
+checkHealth();
+loadMetrics();
+loadBayesian();
+</script>
+</body>
+</html>
