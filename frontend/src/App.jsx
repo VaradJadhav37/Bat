@@ -85,7 +85,7 @@ const BatteryCell = ({ level = 50, label = "Cell 1" }) => {
   );
 };
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:5000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:5050';
 
 function App() {
   const [loading, setLoading] = useState(false);
@@ -102,7 +102,11 @@ function App() {
   useEffect(() => {
     // Load test samples on mount
     axios.get(`${API_BASE}/samples`).then(res => {
-      setTestSamples(res.data);
+      if(res.data && res.data.length > 0) {
+        setTestSamples(res.data);
+        setSelectedSampleIdx(0);
+        handlePredict(res.data[0]);
+      }
     }).catch(err => console.error("Error loading samples", err));
     
     // Load Bayesian & metrics

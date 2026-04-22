@@ -19,7 +19,7 @@ from run_wavenet import WaveNetCNN
 app = Flask(__name__)
 CORS(app)
 
-ARTIFACTS = "artifacts"
+ARTIFACTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "artifacts")
 SEQ_LEN   = 200
 DEVICE    = torch.device("cpu")
 
@@ -172,7 +172,15 @@ def bayesian():
 def get_samples():
     path = os.path.join(ARTIFACTS, "test_samples.pkl")
     if os.path.exists(path):
-        with open(path, "rb") as f: return jsonify(pickle.load(f))
+        with open(path, "rb") as f: 
+            data = pickle.load(f)
+            # Recursively convert numpy arrays to lists for JSON serialization
+            def _tonp(obj):
+                if isinstance(obj, dict): return {k: _tonp(v) for k, v in obj.items()}
+                if isinstance(obj, list): return [_tonp(x) for x in obj]
+                if isinstance(obj, np.ndarray): return obj.tolist()
+                return obj
+            return jsonify(_tonp(data))
     return jsonify([])
 
 @app.route("/upload", methods=["POST"])
@@ -263,4 +271,4 @@ def test_samples_count():
 
 with app.app_context(): load_artifacts()
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5050)), debug=False)
