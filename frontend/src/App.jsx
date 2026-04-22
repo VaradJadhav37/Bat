@@ -210,20 +210,29 @@ function App() {
           <span className="text-2xl">🔋</span>
           <h1 className="font-bold text-lg">Enerlytics</h1>
         </div>
-        <button 
-          onClick={() => fileInputRef.current?.click()}
-          className="bg-primary text-on-primary rounded-full p-2 flex items-center justify-center">
-          <span className="material-symbols-outlined">upload_file</span>
-        </button>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => handlePredict(currentSample)}
+            disabled={loading || !currentSample}
+            className="bg-primary text-on-primary rounded-full px-4 py-2 text-sm font-bold flex items-center gap-2">
+            <span>{loading ? '...' : 'Run'}</span>
+            <span className="material-symbols-outlined text-xs">play_arrow</span>
+          </button>
+          <button 
+            onClick={() => fileInputRef.current?.click()}
+            className="bg-surface-variant text-on-surface-variant rounded-full p-2 flex items-center justify-center">
+            <span className="material-symbols-outlined">upload_file</span>
+          </button>
+        </div>
       </header>
 
       {/* Main Wrapper */}
       <div className="flex-1 flex flex-col md:ml-64 relative h-screen overflow-hidden pt-[64px] md:pt-0">
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-surface-container-low flex flex-col gap-6">
-          <div className="flex flex-col lg:flex-row gap-gutter w-full">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-surface-container-low flex flex-col gap-4">
+          <div className="flex flex-col lg:flex-row gap-4 w-full">
           {/* Left Sidebar: Cell Profile Card */}
-          <aside className="w-full lg:w-80 shrink-0 flex flex-col md:flex-row lg:flex-col gap-6">
-            <div className="bg-primary-container text-on-primary rounded-custom p-6 shadow-lg flex flex-col justify-between gap-6 flex-1 min-h-[300px]">
+          <aside className="w-full lg:w-80 shrink-0 flex flex-col md:flex-row lg:flex-col gap-4">
+            <div className="bg-primary-container text-on-primary rounded-custom p-5 shadow-lg flex flex-col justify-center gap-4 flex-1 min-h-[200px] lg:min-h-[250px]">
                   <div className="flex flex-col items-center gap-4">
                     <p className="font-label-caps text-label-caps text-surface-dim uppercase tracking-widest">Cell Profile</p>
                     <BatteryCell level={50} label={getCellId()} />
@@ -246,8 +255,8 @@ function App() {
 
             {/* Performance Metrics Card */}
             {metrics && (
-              <div className="bg-surface rounded-custom p-8 border border-surface-variant shadow-sm flex flex-col h-[340px]">
-                 <h3 className="font-headline-md text-2xl text-on-surface mb-8">Model Performance</h3>
+              <div className="bg-surface rounded-custom p-6 border border-surface-variant shadow-sm flex flex-col h-[280px]">
+                 <h3 className="font-headline-md text-xl text-on-surface mb-4">Model Performance</h3>
                  <div className="flex-1 overflow-hidden">
                    <table className="w-full text-sm text-left h-full">
                      <thead>
@@ -295,7 +304,7 @@ function App() {
             </div>
 
             {/* Middle Row: 3 Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter min-h-[500px] lg:h-64">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 min-h-[400px] lg:h-80">
               
               {/* Card A: SoH Progress Bar Chart */}
               <div className="bg-primary-container text-on-primary rounded-custom p-6 shadow-lg flex flex-col relative overflow-hidden group">
@@ -369,9 +378,9 @@ function App() {
 
             {/* Bayesian Optimization Row */}
             {bayesian && (
-              <div className="bg-surface text-on-surface rounded-custom p-8 border border-surface-variant shadow-sm min-h-[340px]">
-                <div className="flex items-center gap-4 mb-8">
-                  <h3 className="font-headline-md text-xl md:text-2xl text-on-surface">Bayesian Optimization <span className="text-surface-tint font-light">— Optimal Charging Parameters</span></h3>
+              <div className="bg-surface text-on-surface rounded-custom p-6 border border-surface-variant shadow-sm min-h-[280px]">
+                <div className="flex items-center gap-4 mb-4">
+                  <h3 className="font-headline-md text-lg md:text-xl text-on-surface">Bayesian Optimization <span className="text-surface-tint font-light">— Optimal Charging Parameters</span></h3>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
