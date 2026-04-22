@@ -204,13 +204,26 @@ function App() {
         </button>
       </nav>
 
+      {/* Mobile Header */}
+      <header className="md:hidden bg-surface border-b border-surface-variant p-4 flex items-center justify-between fixed top-0 left-0 w-full z-[100]">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">🔋</span>
+          <h1 className="font-bold text-lg">Enerlytics</h1>
+        </div>
+        <button 
+          onClick={() => fileInputRef.current?.click()}
+          className="bg-primary text-on-primary rounded-full p-2 flex items-center justify-center">
+          <span className="material-symbols-outlined">upload_file</span>
+        </button>
+      </header>
+
       {/* Main Wrapper */}
-      <div className="flex-1 flex flex-col md:ml-64 relative h-screen overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-8 bg-surface-container-low flex flex-col gap-6">
-          <div className="flex gap-gutter w-full">
+      <div className="flex-1 flex flex-col md:ml-64 relative h-screen overflow-hidden pt-[64px] md:pt-0">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-surface-container-low flex flex-col gap-6">
+          <div className="flex flex-col lg:flex-row gap-gutter w-full">
           {/* Left Sidebar: Cell Profile Card */}
-          <aside className="w-80 shrink-0 flex flex-col gap-6">
-            <div className="bg-primary-container text-on-primary rounded-custom p-6 shadow-lg flex flex-col justify-between gap-6 flex-1">
+          <aside className="w-full lg:w-80 shrink-0 flex flex-col md:flex-row lg:flex-col gap-6">
+            <div className="bg-primary-container text-on-primary rounded-custom p-6 shadow-lg flex flex-col justify-between gap-6 flex-1 min-h-[300px]">
                   <div className="flex flex-col items-center gap-4">
                     <p className="font-label-caps text-label-caps text-surface-dim uppercase tracking-widest">Cell Profile</p>
                     <BatteryCell level={50} label={getCellId()} />
@@ -266,23 +279,23 @@ function App() {
           <div className="flex-1 flex flex-col gap-6 max-w-container-max">
             
             {/* Top Row: Stat Pills */}
-            <div className="grid grid-cols-3 gap-gutter">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-gutter">
               <div className="bg-surface rounded-full border border-surface-variant flex items-center justify-between px-8 py-5 shadow-sm">
-                <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">ID-TCN SoH</span>
+                <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest text-[10px] sm:text-xs">ID-TCN SoH</span>
                 <span className="font-metric-lg text-metric-lg text-on-surface">{pct(prediction?.idtcn?.soh)}</span>
               </div>
               <div className="bg-surface rounded-full border border-surface-variant flex items-center justify-between px-8 py-5 shadow-sm">
-                <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">WaveNet SoH</span>
+                <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest text-[10px] sm:text-xs">WaveNet SoH</span>
                 <span className="font-metric-lg text-metric-lg text-on-tertiary-container">{pct(prediction?.wavenet?.soh)}</span>
               </div>
-              <div className="bg-surface rounded-full border border-surface-variant flex items-center justify-between px-8 py-5 shadow-sm">
-                <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">Ensemble RUL</span>
+              <div className="bg-surface rounded-full border border-surface-variant flex items-center justify-between px-8 py-5 shadow-sm col-span-1 sm:col-span-2 md:col-span-1">
+                <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest text-[10px] sm:text-xs">Ensemble RUL</span>
                 <span className="font-metric-lg text-metric-lg text-on-surface">{rulVal ?? '--'} cyc</span>
               </div>
             </div>
 
             {/* Middle Row: 3 Cards */}
-            <div className="grid grid-cols-3 gap-gutter h-64">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter min-h-[500px] lg:h-64">
               
               {/* Card A: SoH Progress Bar Chart */}
               <div className="bg-primary-container text-on-primary rounded-custom p-6 shadow-lg flex flex-col relative overflow-hidden group">
@@ -356,12 +369,12 @@ function App() {
 
             {/* Bayesian Optimization Row */}
             {bayesian && (
-              <div className="bg-surface text-on-surface rounded-custom p-8 border border-surface-variant shadow-sm h-[340px]">
+              <div className="bg-surface text-on-surface rounded-custom p-8 border border-surface-variant shadow-sm min-h-[340px]">
                 <div className="flex items-center gap-4 mb-8">
-                  <h3 className="font-headline-md text-2xl text-on-surface">Bayesian Optimization <span className="text-surface-tint font-light">— Optimal Charging Parameters</span></h3>
+                  <h3 className="font-headline-md text-xl md:text-2xl text-on-surface">Bayesian Optimization <span className="text-surface-tint font-light">— Optimal Charging Parameters</span></h3>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-gutter">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
                   {['idtcn', 'wavenet'].map(k => {
                     const b = bayesian[k];
                     return (
@@ -410,7 +423,7 @@ function App() {
             
             {/* Training Curves Row - Full Width under sidebar */}
             {metrics && (
-              <div className="grid grid-cols-2 gap-gutter min-h-[400px] w-full mt-2">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-gutter min-h-[400px] w-full mt-2">
                 {['idtcn', 'wavenet'].map(k => {
                   const m = metrics[k];
                   const data = m.history_loss.map((l, i) => ({
