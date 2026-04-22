@@ -127,7 +127,7 @@ def _to_cycles(rul_norm, cell_name=None, total_cycles=None):
 # ── Routes ─────────────────────────────────────────────────────────────────
 
 @app.route("/")
-def index(): return render_template("index.html")
+def index(): return jsonify({"message": "Enerlytics API is running", "docs": "/health"}), 200
 
 @app.route("/health")
 def health():
