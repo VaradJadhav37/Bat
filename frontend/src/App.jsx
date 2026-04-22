@@ -236,6 +236,9 @@ function App() {
                   <div className="flex flex-col items-center gap-4">
                     <p className="font-label-caps text-label-caps text-surface-dim uppercase tracking-widest">Cell Profile</p>
                     <BatteryCell level={50} label={getCellId()} />
+                    <p className="text-sm text-surface-tint opacity-80 text-center px-4 mt-2 hidden lg:block">
+                      Select a battery cell sample below to analyze its current health and predict remaining useful life.
+                    </p>
                   </div>
                 {testSamples.length > 0 && (
                   <select 
@@ -338,15 +341,18 @@ function App() {
               </div>
 
               {/* Card C: Optimization Status (Current Sample Params) */}
-              <div className="bg-surface text-on-surface rounded-custom p-6 border border-surface-variant shadow-sm flex flex-col justify-between">
-                <div className="flex justify-between items-start mb-4">
+              <div className="bg-surface text-on-surface rounded-custom p-6 border border-surface-variant shadow-sm flex flex-col h-full">
+                <div className="flex justify-between items-start mb-2">
                   <h3 className="font-headline-md text-xl text-on-surface">Sample Physics</h3>
                   <span className="material-symbols-outlined text-on-surface-variant text-sm">tune</span>
                 </div>
-                <div className="flex flex-col gap-5 flex-1 justify-end">
+                <p className="text-xs text-on-surface-variant mb-auto lg:mb-4 hidden sm:block">
+                  Physical characteristics extracted from the sensor data. These metrics represent the average state during the current cycle.
+                </p>
+                <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-2">
                     <div className="flex justify-between items-end">
-                      <span className="font-label-caps text-xs text-on-surface-variant">Mean Voltage</span>
+                      <span className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wide">Mean Voltage</span>
                       <span className="font-metric-sm text-xs text-on-surface">{prediction?.current_phys?.voltage?.toFixed(4) ?? '--'} V</span>
                     </div>
                     <div className="h-1.5 w-full bg-surface-container-high rounded-full overflow-hidden">
